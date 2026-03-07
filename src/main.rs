@@ -50,11 +50,7 @@ impl Diffusion {
     }
 }
 
-fn diffuse_image(gray: &mut GrayImage) {
-    let boundary = 128u8;
-
-    let diff = Diffusion::Atkinson;
-
+fn diffuse_image(gray: &mut GrayImage, diff: Diffusion, threshold: u8) {
     let black = Luma([0]);
     let white = Luma([255]);
 
@@ -63,7 +59,7 @@ fn diffuse_image(gray: &mut GrayImage) {
             let current_pixel = gray.get_pixel_mut(x, y);
             let current_value = current_pixel.0[0];
 
-            let error = if current_value > boundary {
+            let error = if current_value > threshold {
                 current_value as isize - 255isize
             } else {
                 current_value as isize
@@ -81,8 +77,8 @@ fn main() -> Result<()> {
     let mut gray: GrayImage = img.grayscale().into();
 
     let start = Instant::now();
-    diffuse_image(&mut gray);
-    gray.save_with_format("../images/IMG_2638gray.png", ImageFormat::Png)?;
+    diffuse_image(&mut gray, Diffusion::FloydSteinberg, 128u8);
+    gray.save_with_format("../images/IMG_2638gray_v2.png", ImageFormat::Png)?;
     println!("Dauer: {:?}", start.elapsed());
 
     Ok(())
