@@ -5,6 +5,7 @@ use image::ImageReader;
 use image::Luma;
 use image::Pixel;
 use std::path::Path;
+use std::time::Instant;
 
 pub enum Diffusion {
     Atkinson,
@@ -49,11 +50,7 @@ impl Diffusion {
     }
 }
 
-fn main() -> Result<()> {
-    let path = Path::new("../images/IMG_2638.JPG");
-    let img = ImageReader::open(path)?.decode()?;
-    let mut gray: GrayImage = img.grayscale().into();
-
+fn diffuse_image(gray: &mut GrayImage) {
     let boundary = 128u8;
 
     let diff = Diffusion::Atkinson;
@@ -73,10 +70,20 @@ fn main() -> Result<()> {
             };
 
             *current_pixel = if error > 0 { black } else { white };
-            diff.diffuse(x, y, &mut gray, error);
+            diff.diffuse(x, y, gray, error);
         }
     }
+}
 
-    gray.save_with_format("../images/IMG_2638gray", ImageFormat::Png)?;
+fn main() -> Result<()> {
+    let path = Path::new("../images/IMG_2638.JPG");
+    let img = ImageReader::open(path)?.decode()?;
+    let mut gray: GrayImage = img.grayscale().into();
+
+    let start = Instant::now();
+    diffuse_image(&mut gray);
+    gray.save_with_format("../images/IMG_2638gray.png", ImageFormat::Png)?;
+    println!("Dauer: {:?}", start.elapsed());
+
     Ok(())
 }
