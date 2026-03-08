@@ -30,10 +30,11 @@ pub fn compress(source: &[Byte]) -> Result<Vec<Byte>> {
 
     fn flush_different(source: &[Byte], dest: &mut Vec<u8>, count: usize, i: usize) {
         dest.push((count - 1) as u8);
-        dest.extend_from_slice(&source[(i - count - 1)..(i - 1)]);
+        dest.extend_from_slice(&source[(i - count)..i]);
     }
 
-    for (i, current) in source[1..].iter().enumerate() {
+    let source = &source[1..];
+    for (i, current) in source.iter().enumerate() {
         match state {
             State::Same(same) => {
                 if same == *current {
@@ -51,7 +52,7 @@ pub fn compress(source: &[Byte]) -> Result<Vec<Byte>> {
                     state = State::Diff(*current);
                 } else {
                     if count > 1 {
-                        flush_different(source, &mut out, count - 1, i + 1);
+                        flush_different(source, &mut out, count - 1, i - 1);
                     }
                     state = State::Same(*current);
                     count = 2;
@@ -63,7 +64,7 @@ pub fn compress(source: &[Byte]) -> Result<Vec<Byte>> {
     // Final flush after loop is finished:
     match state {
         State::Same(same) => flush_same(&mut out, same, count as u8),
-        State::Diff(_) => flush_different(source, &mut out, count, source.len() + 1),
+        State::Diff(_) => flush_different(source, &mut out, count, source.len()),
     }
 
     Ok(out)
