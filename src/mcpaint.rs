@@ -15,56 +15,55 @@ pub fn compress(source: &[Byte]) -> Result<Vec<Byte>> {
     }
 
     enum State {
-        Same(u8, usize), // (repeating value, index of value)
-        Diff(u8, usize), // (last_value, index of first change)
-        Init,            // initialize
+        Same(u8), // (repeating value, index of value)
+        Diff(u8), // (last_value, index of first change)
+        Init,     // initialize
     }
-
-    fn flush_same(slice: &[Byte], dest: &mut Vec<u8>) {
-        let len = slice.len();
-        dest.push((257 - len) as u8); // encoding of number of repetitions
-        dest.push(slice[0]);
-    };
-
-    fn flush_different(slice: &[Byte], dest: &mut Vec<u8>) {
-        let len = slice.len();
-        dest.push((len - 1) as u8);
-        dest.extend_from_slice(slice);
+    impl State {
+        fn flush(&self, slice: &[Byte], dest: &mut Vec<u8>) {
+            let len = slice.len();
+            match self {
+                State::Diff(_) => {
+                    dest.push((len - 1) as u8);
+                    dest.extend_from_slice(slice);
+                }
+                State::Same(same) => {
+                    dest.push((257 - len) as u8); // encoding of number of repetitions
+                    dest.push(*same);
+                }
+                State::Init => (),
+            }
+        }
     }
-
+    let mut last_i = 0usize;
     let mut state = State::Init;
 
     for (i, current) in source.iter().enumerate() {
         state = match state {
-            State::Same(same, last_i) => {
+            State::Same(same) => {
                 if same == *current {
                     state
                 } else {
-                    flush_same(&source[last_i..i], &mut dest);
-                    State::Diff(*current, i - 1)
+                    state.flush(&source[last_i..i], &mut dest);
+                    last_i = i;
+                    State::Diff(*current)
                 }
             }
-            State::Diff(last, last_i) => {
+            State::Diff(last) => {
                 if last != *current {
-                    State::Diff(*current, last_i)
+                    State::Diff(*current)
                 } else {
                     if (i - last_i) > 1 {
-                        flush_different(&source[last_i..i], &mut dest);
+                        state.flush(&source[last_i..i - 1], &mut dest);
                     }
-                    State::Same(*current, i - 1)
+                    last_i = i - 1;
+                    State::Same(*current)
                 }
             }
-            State::Init => State::Diff(*current, i),
+            State::Init => State::Diff(*current),
         }
     }
-
-    // Final flush after loop is finished:
-    match state {
-        State::Same(same, i) => flush_same(&source[i..], &mut dest),
-        State::Diff(_, i) => flush_different(&source[i..], &mut dest),
-        State::Init => (),
-    }
-
+    state.flush(&source[last_i..], &mut dest);
     Ok(dest)
 }
 
