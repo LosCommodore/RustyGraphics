@@ -104,6 +104,12 @@ pub fn unpack_bytes(source: &[Byte]) -> Vec<Byte> {
     dest
 }
 
+#[allow(unused)]
+pub fn pack_compress(data: &[u8]) -> Result<Vec<u8>> {
+    let p = pack_bytes(data)?;
+    compress(&p)
+}
+
 #[cfg(test)]
 mod test {
     use crate::mcpaint::{compress, pack_bytes, unpack_bytes};
