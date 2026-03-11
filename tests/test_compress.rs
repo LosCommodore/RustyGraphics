@@ -1,7 +1,8 @@
 use anyhow::{Ok, Result};
 use image::{GrayImage, ImageReader};
 use retroimage::diffuse::{Diffusion, diffuse_image};
-use retroimage::mcpaint::pack_compress;
+use retroimage::mcpaint::compress_image;
+use std::fs;
 use std::path::Path;
 
 #[test]
@@ -12,14 +13,7 @@ fn test_image_compress() -> Result<()> {
     let mut gray: GrayImage = th.grayscale().into();
     diffuse_image(&mut gray, Diffusion::FloydSteinberg, 128u8);
 
-    let _array: Vec<u8> = gray
-        .as_raw()
-        .chunks_exact(576)
-        .map(|row| pack_compress(row))
-        .collect::<Result<Vec<_>, _>>()? // Hier wird der Fehler abgefangen
-        .into_iter()
-        .flatten()
-        .collect::<Vec<u8>>();
-
+    let output = compress_image(&gray)?;
+    fs::write("../images/IMG_2638.mcpaint", output).expect("Fehler beim Schreiben");
     Ok(())
 }
