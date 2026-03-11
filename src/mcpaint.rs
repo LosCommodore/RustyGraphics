@@ -1,11 +1,48 @@
 type Byte = u8;
 use anyhow::{Result, bail};
+use image::GrayImage;
 use itertools::Itertools;
 
-#[allow(unused)]
+pub fn compress_image(gray: &GrayImage) -> Result<Vec<u8>> {
+    let ans = gray
+        .as_raw()
+        .chunks_exact(576)
+        .map(|row| pack_compress(row))
+        .collect::<Result<Vec<_>, _>>()? // Hier wird der Fehler abgefangen
+        .into_iter()
+        .flatten()
+        .collect::<Vec<u8>>();
+
+    Ok(ans)
+}
+
+pub fn uncompress(source: &[Byte]) -> Result<Vec<Byte>> {
+    let mut index = 0;
+    let mut out = Vec::new();
+    out.reserve(source.len() / 2);
+
+    while index < source.len() {
+        let indicator = source[index];
+        if indicator > 127 {
+            // case same
+            let len = (255 - indicator + 2) as usize;
+            let same = source[index + 1];
+            out.resize(out.len() + len, same);
+            index += 2;
+        } else {
+            let len = indicator as usize + 1;
+            let start = index + 1;
+            let end = index + 1 + len;
+            out.extend_from_slice(&source[start..end]);
+            index += len + 1;
+        }
+    }
+    Ok(out)
+}
+
 pub fn compress(source: &[Byte]) -> Result<Vec<Byte>> {
     if source.len() > 128 {
-        bail!("Conpression only valid for Slices of length <=255")
+        bail!("Conpression only valid for Slices of length <=128")
     }
 
     let mut dest = Vec::new();
@@ -67,7 +104,6 @@ pub fn compress(source: &[Byte]) -> Result<Vec<Byte>> {
     Ok(dest)
 }
 
-#[allow(unused)]
 pub fn pack_bytes(source: &[Byte]) -> Result<Vec<Byte>> {
     if source.len() % 8 != 0 {
         bail!("Number of Pixels must be divisible by 8")
@@ -90,7 +126,6 @@ pub fn pack_bytes(source: &[Byte]) -> Result<Vec<Byte>> {
     Ok(dest)
 }
 
-#[allow(unused)]
 pub fn unpack_bytes(source: &[Byte]) -> Vec<Byte> {
     let capacity = source.len() * 8;
     let mut dest = Vec::with_capacity(capacity);
@@ -112,7 +147,7 @@ pub fn pack_compress(data: &[u8]) -> Result<Vec<u8>> {
 
 #[cfg(test)]
 mod test {
-    use crate::mcpaint::{compress, pack_bytes, unpack_bytes};
+    use crate::mcpaint::{compress, pack_bytes, uncompress, unpack_bytes};
 
     #[test]
     fn test_pack() {
@@ -179,5 +214,16 @@ mod test {
                 254, 170, 2, 128, 0, 42, 253, 170, 3, 128, 0, 42, 34, 247, 170, 0, 99
             ]
         );
+    }
+
+    #[test]
+    fn test_compress_uncompress() {
+        let data_in = vec![
+            170, 170, 170, 128, 0, 42, 170, 170, 170, 170, 128, 0, 42, 34, 170, 170, 170, 170, 170,
+            170, 170, 170, 170, 170, 99,
+        ];
+        let out = compress(&data_in).unwrap();
+        let reverse = uncompress(&out).unwrap();
+        assert_eq!(data_in, reverse);
     }
 }
