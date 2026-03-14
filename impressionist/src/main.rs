@@ -69,3 +69,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn flatten_pixels(input: &[[u8; 3]]) -> Vec<u8> {
+        input.into_iter().copied().flatten().collect::<Vec<u8>>()
+    }
+
+    #[test]
+    fn test_add() {
+        let pixel = flatten_pixels(&[[5, 6, 5], [5, 5, 5]]);
+        let pixel2 = flatten_pixels(&[[5, 5, 7], [5, 5, 0]]);
+
+        let img1 = RgbImage::from_raw(2, 1, pixel).unwrap();
+        let img2 = RgbImage::from_raw(2, 1, pixel2).unwrap();
+        let d = calculate_difference(&img1, &img2);
+        assert_eq!(d, 8);
+    }
+}
