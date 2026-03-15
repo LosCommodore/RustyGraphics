@@ -34,8 +34,8 @@ fn display_screen(disp_img: &RgbImage) -> Result<()> {
 fn main() -> Result<()> {
     let mut painting = Painting::from_image(
         "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape.jpeg",
-        100,
         200,
+        400,
         shape::ShapeType::Ellipse,
     )?;
     painting.paint(40000);
