@@ -34,27 +34,35 @@ fn exit_on_escape(window: &WindowProxy) -> Result<()> {
 
 fn run(
     file: impl AsRef<Path>,
+    save_file: impl AsRef<Path>,
     width: u32,
     height: u32,
     shape_type: ShapeType,
     max_iter: usize,
-    animate: bool,
+    animate: Option<usize>,
 ) -> Result<()> {
     let mut painting = Painting::from_image(file, width, height, shape_type)?;
 
     let window = create_window("image", Default::default())?;
-    if animate == true {
+    if let Some(_) = animate {
         display_screen(&window, &painting.canvas)?;
     }
 
+    let mut anim_counter = 1;
     for i in 1..=max_iter {
         println!("Iteration {i} of {max_iter}");
         painting.next_shape();
-        if animate == true {
-            display_screen(&window, &painting.canvas)?;
+        if let Some(anim_step) = animate {
+            if anim_counter >= anim_step {
+                display_screen(&window, &painting.canvas)?;
+                anim_counter = 1;
+            } else {
+                anim_counter += 1;
+            }
         }
     }
 
+    painting.canvas.save(save_file)?;
     display_screen(&window, &painting.canvas)?;
     exit_on_escape(&window)?;
     Ok(())
@@ -64,10 +72,11 @@ fn run(
 fn main() -> Result<()> {
     run(
         "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape.jpeg",
-        200,
-        400,
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape_impression.jpeg",
+        600,
+        800,
         ShapeType::Ellipse,
-        1000,
-        true,
+        100000,
+        Some(10),
     )
 }
