@@ -34,6 +34,7 @@ fn exit_on_escape(window: &WindowProxy) -> Result<()> {
 
 fn run(
     file: impl AsRef<Path>,
+    thumpnail_file: impl AsRef<Path>,
     save_file: impl AsRef<Path>,
     width: u32,
     height: u32,
@@ -42,6 +43,7 @@ fn run(
     animate: Option<usize>,
 ) -> Result<()> {
     let mut painting = Painting::from_image(file, width, height, shape_type)?;
+    painting.original.save(thumpnail_file)?;
 
     let window = create_window("image", Default::default())?;
     if let Some(_) = animate {
@@ -72,9 +74,10 @@ fn run(
 fn main() -> Result<()> {
     run(
         "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape.jpeg",
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape_thumpnail.jpeg",
         "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape_impression.jpeg",
-        600,
-        800,
+        200,
+        300,
         ShapeType::Ellipse,
         100000,
         Some(10),
