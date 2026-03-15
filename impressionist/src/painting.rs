@@ -29,7 +29,7 @@ impl Painting {
         let shapes = Vec::new();
         let original_view = original.view(0, 0, original.width(), original.height());
         let pixel = img_helper::get_average_pixel(*original_view);
-        let mut canvas = RgbImage::from_pixel(width, height, pixel);
+        let mut canvas: ImageBuffer<Rgb<u8>, Vec<u8>> = RgbImage::from_pixel(width, height, pixel);
         let score = img_helper::calculate_difference(&original, &canvas);
 
         Ok(Self {
@@ -43,7 +43,7 @@ impl Painting {
 
     pub fn step(&mut self) {
         let shape = Shape::new_random(self.canvas.width(), self.canvas.height());
-        let r = img_helper::bounding_box(&shape.points);
+        let r: (u32, u32, u32, u32) = img_helper::bounding_box(&shape.points);
         let sub_image = self.canvas.view(r.0, r.1, r.2, r.3);
         let color = img_helper::get_average_pixel(*sub_image);
 
