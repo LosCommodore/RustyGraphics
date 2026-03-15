@@ -1,63 +1,24 @@
 #![allow(unused)]
+mod painting;
 mod shape;
-use image::{Pixel, Rgb, RgbImage};
+use anyhow::{Ok, Result};
+use image::{ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
 use itertools::izip;
+use painting::{Painting, calculate_difference};
 use shape::Shape;
 use show_image::event;
 use show_image::{ImageInfo, ImageView, create_window};
+use std::path::Path;
 
-fn subtract_images(img1: &RgbImage, img2: &RgbImage) -> RgbImage {
-    let (width, height) = img1.dimensions();
-    let mut out_img = RgbImage::new(width, height);
+fn display_screen(disp_img: &RgbImage) -> Result<()> {
+    let width = disp_img.width();
+    let height = disp_img.height();
 
-    izip!(img1.pixels(), img2.pixels(), out_img.pixels_mut()).for_each(|(p1, p2, p_out)| {
-        *p_out = p1.map2(p2, |a, b| a.abs_diff(b));
-    });
-    out_img
-}
-
-fn calculate_difference(img1: &RgbImage, img2: &RgbImage) -> u64 {
-    img1.pixels()
-        .zip(img2.pixels())
-        .fold(0u64, |acc, (p1, p2)| {
-            let p_out = p1.map2(p2, |a, b| a.abs_diff(b));
-            let diff = p_out.0.iter().fold(0u64, |acc, x| acc + (*x as u64));
-            acc + diff
-        })
-}
-
-fn snippets() {
-    /*
-    // 2. Ein paar Pixel manuell setzen (oder hier imageproc nutzen)
-    for x in 0..width {
-        for y in 0..height {
-            let color = Rgb([(x % 255) as u8, (y % 255) as u8, 150]);
-            img.put_pixel(x, y, color);
-        }
-    }
-    */
-    todo!()
-}
-
-#[show_image::main]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 1. Erstelle ein Bild mit dem image-Crate (z.B. 800x600, schwarz)
-    let width = 800;
-    let height = 600;
-    let mut img = RgbImage::new(width, height);
-
-    // --- print to image
-    for _ in 0..100 {
-        let shape = Shape::new_random(width, height);
-        shape.draw(&mut img);
-    }
-    //draw_filled_circle_mut(&mut img, (100, 100), 200, Rgb([100, 200, 200]));
-    let image_view = ImageView::new(ImageInfo::rgb8(width, height), &img);
+    let image_view = ImageView::new(ImageInfo::rgb8(width, height), &disp_img);
     let window = create_window("image", Default::default())?;
-    window.set_image("bild-001", image_view)?;
+    window.set_image("impressionist", image_view)?;
 
-    // Print keyboard events until Escape is pressed, then exit.
-    // If the user closes the window, the channel is closed and the loop also exits.
+    // --- SHOW IMAGE
     for event in window.event_channel()? {
         if let event::WindowEvent::KeyboardInput(event) = event {
             println!("{:#?}", event);
@@ -68,6 +29,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+    Ok(())
+}
+
+#[show_image::main]
+fn main() -> Result<()> {
+    let width = 800;
+    let height = 600;
+    let mut img = RgbImage::new(width, height);
+
+    /*
+    // --- print to image
+    for _ in 0..100 {
+        let shape = Shape::new_random(width, height);
+        shape.draw(&mut img);
+    }
+     */
+
+    let painting = Painting::from_image("../images/IMG_2638.JPG", 600, 300)?;
+    display_screen(&painting.canvas)?;
 
     Ok(())
 }
