@@ -1,10 +1,12 @@
 #![allow(unused)]
+mod img_helper;
 mod painting;
 mod shape;
+
 use anyhow::{Ok, Result};
 use image::{ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
 use itertools::izip;
-use painting::{Painting, calculate_difference};
+use painting::Painting;
 use shape::Shape;
 use show_image::event;
 use show_image::{ImageInfo, ImageView, create_window};
@@ -46,28 +48,13 @@ fn main() -> Result<()> {
     }
      */
 
-    let painting = Painting::from_image("../images/IMG_2638.JPG", 600, 300)?;
+    let painting = Painting::from_image(
+        "../images/IMG_2638.JPG",
+        600,
+        300,
+        shape::ShapeType::Ellipse,
+    )?;
     display_screen(&painting.canvas)?;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn flatten_pixels(input: &[[u8; 3]]) -> Vec<u8> {
-        input.into_iter().copied().flatten().collect::<Vec<u8>>()
-    }
-
-    #[test]
-    fn test_add() {
-        let pixel = flatten_pixels(&[[5, 6, 5], [5, 5, 5]]);
-        let pixel2 = flatten_pixels(&[[5, 5, 7], [5, 5, 0]]);
-
-        let img1 = RgbImage::from_raw(2, 1, pixel).unwrap();
-        let img2 = RgbImage::from_raw(2, 1, pixel2).unwrap();
-        let d = calculate_difference(&img1, &img2);
-        assert_eq!(d, 8);
-    }
 }
