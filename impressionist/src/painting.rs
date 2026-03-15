@@ -29,7 +29,8 @@ impl Painting {
         let shapes = Vec::new();
         let original_view = original.view(0, 0, original.width(), original.height());
         let pixel = img_helper::get_average_pixel(*original_view);
-        let mut canvas: ImageBuffer<Rgb<u8>, Vec<u8>> = RgbImage::from_pixel(width, height, pixel);
+        let mut canvas: ImageBuffer<Rgb<u8>, Vec<u8>> =
+            RgbImage::from_pixel(original.width(), original.height(), pixel);
         let score = img_helper::calculate_difference(&original, &canvas);
 
         Ok(Self {
@@ -43,14 +44,14 @@ impl Painting {
 
     fn get_avarage_color_from_shape_boundaries(&self, shape: &Shape) -> Rgb<u8> {
         let r: (u32, u32, u32, u32) = img_helper::bounding_box(&shape.points);
-        let sub_image = self.canvas.view(r.0, r.1, r.2, r.3);
+        let sub_image = self.original.view(r.0, r.1, r.2, r.3);
         img_helper::get_average_pixel(*sub_image)
     }
 
     fn calculate_score(&self, shape: &Shape, color: Rgb<u8>) -> u64 {
         let mut temp_image = self.canvas.clone();
         shape.draw(&mut temp_image, color);
-        img_helper::calculate_difference(&self.canvas, &temp_image)
+        img_helper::calculate_difference(&self.original, &temp_image)
     }
 
     pub fn next_shape(&mut self) -> (Shape, Rgb<u8>, u64) {
@@ -85,7 +86,7 @@ impl Painting {
                             shape_type: self.shape_type,
                             points: new_points,
                         };
-                        let score = self.calculate_score(&inital_shape, color);
+                        let score = self.calculate_score(&shape, color);
                         if score > initial_score {
                             break;
                         }
@@ -105,10 +106,10 @@ impl Painting {
         for i in 0..runs {
             println!("run: {i} of {runs}");
             let (shape, color, score) = self.next_shape();
-            if score < self.score {
-                shape.draw(&mut self.canvas, color);
-                self.shapes.push((shape, color));
-            }
+            //if score < self.score {
+            shape.draw(&mut self.canvas, color);
+            self.shapes.push((shape, color));
+            //}
         }
     }
 }

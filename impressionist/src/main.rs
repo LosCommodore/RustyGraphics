@@ -37,7 +37,7 @@ fn display_screen(disp_img: &RgbImage) -> Result<()> {
 #[show_image::main]
 fn main() -> Result<()> {
     let mut painting = Painting::from_image(
-        "../images/IMG_2638.JPG",
+        "../images/face_painting.jpg",
         600,
         300,
         shape::ShapeType::Triangle,
