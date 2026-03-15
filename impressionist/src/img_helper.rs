@@ -1,9 +1,9 @@
 use anyhow::Result;
-use image::{ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
+use image::{GenericImage, GenericImageView, ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
 use imageproc::point::Point;
 use itertools::izip;
 
-pub fn bounding_box(points: &[Point<i32>]) -> (Point<i32>, Point<i32>) {
+pub fn bounding_box(points: &[Point<i32>]) -> (u32, u32, u32, u32) {
     let mut min_x = points[0].x;
     let mut min_y = points[0].y;
     let mut max_x = points[0].x;
@@ -17,9 +17,10 @@ pub fn bounding_box(points: &[Point<i32>]) -> (Point<i32>, Point<i32>) {
         max_y = max_y.max(p.y);
     }
 
-    let upper_left = Point { x: min_x, y: min_y };
-    let lower_right = Point { x: max_x, y: max_y };
-    (upper_left, lower_right)
+    let width = max_x - min_x;
+    let height = max_y - min_y;
+
+    (min_x as u32, min_y as u32, width as u32, height as u32)
 }
 
 pub fn subtract_images(img1: &RgbImage, img2: &RgbImage) -> RgbImage {
@@ -42,23 +43,33 @@ pub fn calculate_difference(img1: &RgbImage, img2: &RgbImage) -> u64 {
         })
 }
 
-pub fn get_average_pixel(img1: &RgbImage) -> Rgb<u8> {
-    let pixel_count = img1.width() + img1.height();
-    let rgb_sum = img1.pixels().fold([0usize; 3], |acc, item| {
+pub fn get_average_pixel<I>(img1: I) -> Rgb<u8>
+where
+    I: GenericImageView<Pixel = Rgb<u8>>,
+{
+    let (w, h) = img1.dimensions();
+    let pixel_count = w as usize * h as usize;
+
+    if pixel_count == 0 {
+        return Rgb([0, 0, 0]);
+    }
+
+    // Wir entpacken das Tupel (x, y, pixel) zu (_, _, item)
+    let rgb_sum = img1.pixels().fold([0usize; 3], |acc, (_, _, item)| {
         [
             acc[0] + item[0] as usize,
             acc[1] + item[1] as usize,
             acc[2] + item[2] as usize,
         ]
     });
-    let avg = rgb_sum
-        .iter()
-        .map(|x| (x / pixel_count as usize) as u8)
-        .collect::<Vec<_>>();
-    let arr: [u8; 3] = avg.try_into().unwrap();
-    Rgb(arr)
-}
 
+    // Direktes Erzeugen des Arrays vermeidet Vec-Allokation
+    Rgb([
+        (rgb_sum[0] / pixel_count) as u8,
+        (rgb_sum[1] / pixel_count) as u8,
+        (rgb_sum[2] / pixel_count) as u8,
+    ])
+}
 #[cfg(test)]
 mod tests {
     use crate::img_helper::calculate_difference;
