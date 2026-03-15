@@ -105,6 +105,7 @@ impl Painting {
         true
     }
 
+    #[allow(unused)]
     pub fn paint(&mut self, runs: usize) {
         for i in 0..runs {
             println!("run: {i} of {runs}");
