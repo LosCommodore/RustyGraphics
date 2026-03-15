@@ -8,3 +8,4 @@ show-image = "0.14.1"
 image.workspace=true
 imageproc = "0.26.1"
 itertools.workspace=true
+rand = "0.10.0"
