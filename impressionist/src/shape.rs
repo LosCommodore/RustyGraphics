@@ -1,0 +1,85 @@
+use image::{Pixel, Rgb, RgbImage};
+use imageproc::drawing::{draw_filled_ellipse_mut, draw_line_segment_mut, draw_polygon_mut};
+use imageproc::point::Point;
+use rand::RngExt;
+use rand::prelude::*;
+
+#[derive(Clone, Copy, Debug)]
+pub enum ShapeType {
+    Ellipse,
+    Triangle,
+    Quadrinial,
+    Line,
+}
+
+pub struct Shape {
+    shape_type: ShapeType,
+    pub points: Vec<Point<i32>>,
+}
+
+#[allow(unused)]
+impl Shape {
+    pub fn new(shape_type: ShapeType, screen_width: u32, screen_height: u32) -> Self {
+        let num_points = match shape_type {
+            ShapeType::Line => 2,
+            ShapeType::Ellipse => 2,
+            ShapeType::Triangle => 3,
+            ShapeType::Quadrinial => 4,
+        };
+
+        let points = (0..num_points)
+            .map(|_| random_point(screen_width, screen_height))
+            .collect();
+        Self { shape_type, points }
+    }
+
+    pub fn new_random(screen_width: u32, screen_height: u32) -> Self {
+        let mut rng = rand::rng();
+        let choices = [
+            ShapeType::Ellipse,
+            ShapeType::Line,
+            ShapeType::Triangle,
+            ShapeType::Quadrinial,
+        ];
+
+        let shape_type = choices.choose(&mut rng).unwrap();
+        Shape::new(*shape_type, screen_width, screen_height)
+    }
+
+    pub fn draw(&self, canvas: &mut RgbImage) {
+        let color = random_color();
+
+        match self.shape_type {
+            ShapeType::Ellipse => {
+                // convert bounding-box points to -> center & radius
+                let delta = self.points[1] - self.points[0];
+                let dx = delta.x / 2;
+                let dy = delta.y / 2;
+                let center = (self.points[0].x + dx, self.points[0].y + dy);
+                draw_filled_ellipse_mut(canvas, center, dx.abs(), dy.abs(), color);
+            }
+
+            ShapeType::Line => {
+                let start = (self.points[0].x as f32, self.points[0].y as f32);
+                let end = (self.points[1].x as f32, self.points[1].y as f32);
+                draw_line_segment_mut(canvas, start, end, color);
+            }
+            ShapeType::Triangle | ShapeType::Quadrinial => {
+                draw_polygon_mut(canvas, &self.points, color);
+            }
+        }
+    }
+}
+
+fn random_point(screen_width: u32, screen_height: u32) -> Point<i32> {
+    let mut rng = rand::rng();
+    let x = rng.random_range(0..screen_width) as i32;
+    let y = rng.random_range(0..screen_height) as i32;
+    Point { x, y }
+}
+
+fn random_color() -> Rgb<u8> {
+    let mut rng = rand::rng();
+    let colors: [u8; 3] = std::array::from_fn(|_| rng.random_range(0..=255));
+    Rgb(colors)
+}
