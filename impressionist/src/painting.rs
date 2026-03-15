@@ -1,9 +1,8 @@
+use crate::img_helper;
 use crate::shape::{Shape, ShapeType};
-use crate::{img_helper, shape};
 use anyhow::Result;
-use image::{GenericImage, GenericImageView, ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
-use imageproc::point::Point;
-use itertools::{enumerate, izip};
+use image::{GenericImageView, ImageBuffer, ImageReader, Rgb, RgbImage};
+use itertools::enumerate;
 
 use std::path::Path;
 pub struct Painting {
@@ -29,7 +28,7 @@ impl Painting {
         let shapes = Vec::new();
         let original_view = original.view(0, 0, original.width(), original.height());
         let pixel = img_helper::get_average_pixel(*original_view);
-        let mut canvas: ImageBuffer<Rgb<u8>, Vec<u8>> =
+        let canvas: ImageBuffer<Rgb<u8>, Vec<u8>> =
             RgbImage::from_pixel(original.width(), original.height(), pixel);
         let score = img_helper::calculate_difference(&original, &canvas);
 
@@ -54,15 +53,16 @@ impl Painting {
         img_helper::calculate_difference(&self.original, &temp_image)
     }
 
-    pub fn next_shape(&mut self) -> (Shape, Rgb<u8>, u64) {
+    pub fn next_shape(&mut self) -> bool {
         let width = self.canvas.width();
         let height = self.canvas.height();
 
-        let shape = Shape::new_random_position(self.shape_type, width, height);
-        let color = self.get_avarage_color_from_shape_boundaries(&shape);
-
         let inital_shape = Shape::new_random_position(self.shape_type, width, height);
-        let mut initial_score = self.calculate_score(&inital_shape, color);
+        let color = self.get_avarage_color_from_shape_boundaries(&inital_shape);
+        let initial_score = self.calculate_score(&inital_shape, color);
+        if initial_score > self.score {
+            return false;
+        }
 
         let mut best_shape = inital_shape.clone();
         let mut best_score = initial_score;
@@ -99,20 +99,23 @@ impl Painting {
             }
         }
 
-        (best_shape, color, best_score)
+        best_shape.draw(&mut self.canvas, color);
+        self.score = best_score;
+        self.shapes.push((best_shape, color));
+        true
     }
 
     pub fn paint(&mut self, runs: usize) {
         for i in 0..runs {
             println!("run: {i} of {runs}");
-            let (shape, color, score) = self.next_shape();
-            if score < self.score {
-                println!(" -> sucess, new shaped added");
-                shape.draw(&mut self.canvas, color);
-                self.shapes.push((shape, color));
-            } else {
-                println!(" -> fail, shaped discarded");
-            }
+            match self.next_shape() {
+                true => {
+                    println!(" -> sucess, new shaped added");
+                }
+                false => {
+                    println!(" -> fail, shaped discarded");
+                }
+            };
         }
     }
 }

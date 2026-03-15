@@ -1,16 +1,12 @@
-#![allow(unused)]
 mod img_helper;
 mod painting;
 mod shape;
 
 use anyhow::{Ok, Result};
-use image::{ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
-use itertools::izip;
+use image::RgbImage;
 use painting::Painting;
-use shape::Shape;
 use show_image::event;
 use show_image::{ImageInfo, ImageView, create_window};
-use std::path::Path;
 
 fn display_screen(disp_img: &RgbImage) -> Result<()> {
     let width = disp_img.width();
@@ -37,12 +33,12 @@ fn display_screen(disp_img: &RgbImage) -> Result<()> {
 #[show_image::main]
 fn main() -> Result<()> {
     let mut painting = Painting::from_image(
-        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/face_painting.jpg",
-        600,
-        300,
-        shape::ShapeType::Triangle,
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape.jpeg",
+        100,
+        200,
+        shape::ShapeType::Ellipse,
     )?;
-    painting.paint(400);
+    painting.paint(40000);
     display_screen(&painting.canvas)?;
 
     Ok(())

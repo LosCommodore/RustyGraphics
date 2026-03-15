@@ -1,5 +1,4 @@
-use anyhow::Result;
-use image::{GenericImage, GenericImageView, ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
+use image::{GenericImageView, Pixel, Rgb, RgbImage};
 use imageproc::point::Point;
 use itertools::izip;
 
@@ -23,6 +22,7 @@ pub fn bounding_box(points: &[Point<i32>]) -> (u32, u32, u32, u32) {
     (min_x as u32, min_y as u32, width as u32, height as u32)
 }
 
+#[allow(unused)]
 pub fn subtract_images(img1: &RgbImage, img2: &RgbImage) -> RgbImage {
     let (width, height) = img1.dimensions();
     let mut out_img = RgbImage::new(width, height);

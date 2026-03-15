@@ -1,4 +1,4 @@
-use image::{Pixel, Rgb, RgbImage};
+use image::{Rgb, RgbImage};
 use imageproc::drawing::{draw_filled_ellipse_mut, draw_line_segment_mut, draw_polygon_mut};
 use imageproc::point::Point;
 use rand::RngExt;
@@ -81,6 +81,7 @@ fn random_point(screen_width: u32, screen_height: u32) -> Point<i32> {
     Point { x, y }
 }
 
+#[allow(unused)]
 fn random_color() -> Rgb<u8> {
     let mut rng = rand::rng();
     let colors: [u8; 3] = std::array::from_fn(|_| rng.random_range(0..=255));
