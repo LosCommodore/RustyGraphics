@@ -3,10 +3,12 @@ use imageproc::drawing::{draw_filled_ellipse_mut, draw_line_segment_mut, draw_po
 use imageproc::point::Point;
 use itertools::izip;
 use rand::RngExt;
+use rand::prelude::*;
 use show_image::event;
 use show_image::{ImageInfo, ImageView, create_window};
 
 #[allow(unused)]
+#[derive(Clone, Copy, Debug)]
 enum ShapeType {
     Ellipse,
     Triangle,
@@ -32,6 +34,7 @@ fn random_color() -> Rgb<u8> {
     Rgb(colors)
 }
 
+#[allow(unused)]
 impl Shape {
     fn new(shape_type: ShapeType, screen_width: u32, screen_height: u32) -> Self {
         let num_points = match shape_type {
@@ -45,6 +48,19 @@ impl Shape {
             .map(|_| random_point(screen_width, screen_height))
             .collect();
         Self { shape_type, points }
+    }
+
+    pub fn new_random(screen_width: u32, screen_height: u32) -> Self {
+        let mut rng = rand::rng();
+        let choices = [
+            ShapeType::Ellipse,
+            ShapeType::Line,
+            ShapeType::Triangle,
+            ShapeType::Quadrinial,
+        ];
+
+        let shape_type = choices.choose(&mut rng).unwrap();
+        Shape::new(*shape_type, screen_width, screen_height)
     }
 
     fn draw(&self, canvas: &mut RgbImage) {
@@ -117,7 +133,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // --- print to image
     for _ in 0..100 {
-        let shape = Shape::new(ShapeType::Ellipse, width, height);
+        let shape = Shape::new_random(width, height);
         shape.draw(&mut img);
     }
     //draw_filled_circle_mut(&mut img, (100, 100), 200, Rgb([100, 200, 200]));
