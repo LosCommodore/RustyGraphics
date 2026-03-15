@@ -106,10 +106,13 @@ impl Painting {
         for i in 0..runs {
             println!("run: {i} of {runs}");
             let (shape, color, score) = self.next_shape();
-            //if score < self.score {
-            shape.draw(&mut self.canvas, color);
-            self.shapes.push((shape, color));
-            //}
+            if score < self.score {
+                println!(" -> sucess, new shaped added");
+                shape.draw(&mut self.canvas, color);
+                self.shapes.push((shape, color));
+            } else {
+                println!(" -> fail, shaped discarded");
+            }
         }
     }
 }

@@ -37,12 +37,12 @@ fn display_screen(disp_img: &RgbImage) -> Result<()> {
 #[show_image::main]
 fn main() -> Result<()> {
     let mut painting = Painting::from_image(
-        "../images/face_painting.jpg",
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/face_painting.jpg",
         600,
         300,
         shape::ShapeType::Triangle,
     )?;
-    painting.paint(1);
+    painting.paint(400);
     display_screen(&painting.canvas)?;
 
     Ok(())
