@@ -12,14 +12,15 @@ pub enum ShapeType {
     Line,
 }
 
+#[derive(Clone, Debug)]
 pub struct Shape {
-    shape_type: ShapeType,
+    pub shape_type: ShapeType,
     pub points: Vec<Point<i32>>,
 }
 
 #[allow(unused)]
 impl Shape {
-    pub fn new(shape_type: ShapeType, screen_width: u32, screen_height: u32) -> Self {
+    pub fn random(shape_type: ShapeType, screen_width: u32, screen_height: u32) -> Self {
         let num_points = match shape_type {
             ShapeType::Line => 2,
             ShapeType::Ellipse => 2,
@@ -33,7 +34,7 @@ impl Shape {
         Self { shape_type, points }
     }
 
-    pub fn new_random(screen_width: u32, screen_height: u32) -> Self {
+    pub fn new_random_type(screen_width: u32, screen_height: u32) -> Self {
         let mut rng = rand::rng();
         let choices = [
             ShapeType::Ellipse,
@@ -43,12 +44,10 @@ impl Shape {
         ];
 
         let shape_type = choices.choose(&mut rng).unwrap();
-        Shape::new(*shape_type, screen_width, screen_height)
+        Shape::random(*shape_type, screen_width, screen_height)
     }
 
-    pub fn draw(&self, canvas: &mut RgbImage) {
-        let color = random_color();
-
+    pub fn draw(&self, canvas: &mut RgbImage, color: Rgb<u8>) {
         match self.shape_type {
             ShapeType::Ellipse => {
                 // convert bounding-box points to -> center & radius

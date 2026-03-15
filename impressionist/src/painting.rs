@@ -1,13 +1,13 @@
-use crate::img_helper;
 use crate::shape::{Shape, ShapeType};
+use crate::{img_helper, shape};
 use anyhow::Result;
 use image::{GenericImage, GenericImageView, ImageBuffer, ImageReader, Pixel, Rgb, RgbImage};
 use imageproc::point::Point;
-use itertools::izip;
+use itertools::{enumerate, izip};
 
 use std::path::Path;
 pub struct Painting {
-    shapes: Vec<Shape>,
+    shapes: Vec<(Shape, Rgb<u8>)>,
     shape_type: ShapeType,
     pub original: RgbImage,
     pub canvas: RgbImage,
@@ -41,21 +41,74 @@ impl Painting {
         })
     }
 
-    pub fn step(&mut self) {
-        let shape = Shape::new_random(self.canvas.width(), self.canvas.height());
+    fn get_avarage_color_from_shape_boundaries(&self, shape: &Shape) -> Rgb<u8> {
         let r: (u32, u32, u32, u32) = img_helper::bounding_box(&shape.points);
         let sub_image = self.canvas.view(r.0, r.1, r.2, r.3);
-        let color = img_helper::get_average_pixel(*sub_image);
+        img_helper::get_average_pixel(*sub_image)
+    }
 
+    fn calculate_score(&self, shape: &Shape, color: Rgb<u8>) -> u64 {
         let mut temp_image = self.canvas.clone();
-        let shape = Shape::new(self.shape_type, temp_image.width(), temp_image.height());
-        shape.draw(&mut temp_image);
+        shape.draw(&mut temp_image, color);
+        img_helper::calculate_difference(&self.canvas, &temp_image)
+    }
 
-        let new_score = img_helper::calculate_difference(&self.canvas, &temp_image);
-        if new_score < self.score {
-            self.canvas = temp_image;
+    pub fn next_shape(&mut self) -> (Shape, Rgb<u8>, u64) {
+        let width = self.canvas.width();
+        let height = self.canvas.height();
+
+        let shape = Shape::new_random_type(width, height);
+        let color = self.get_avarage_color_from_shape_boundaries(&shape);
+
+        let inital_shape = Shape::random(self.shape_type, width, height);
+        let mut initial_score = self.calculate_score(&inital_shape, color);
+
+        let mut best_shape = inital_shape.clone();
+        let mut best_score = initial_score;
+
+        for (i_point, point) in enumerate(&inital_shape.points) {
+            let directions_cross = [
+                (0..point.x as i32, 0..1),
+                ((point.x + 1)..width as i32, 0..1),
+                (0..1, 0..point.y as i32),
+                ((point.y + 1)..height as i32, 0..1),
+            ];
+
+            for (iter_x, iter_y) in &directions_cross {
+                for x in iter_x.clone() {
+                    for y in iter_y.clone() {
+                        let mut new_points = best_shape.points.clone();
+                        new_points[i_point].x = x;
+                        new_points[i_point].y = y;
+
+                        let shape = Shape {
+                            shape_type: self.shape_type,
+                            points: new_points,
+                        };
+                        let score = self.calculate_score(&inital_shape, color);
+                        if score > initial_score {
+                            break;
+                        }
+                        if score < initial_score {
+                            best_shape = shape;
+                            best_score = score;
+                        }
+                    }
+                }
+            }
         }
 
-        todo!()
+        (best_shape, color, best_score)
+    }
+
+    pub fn paint(&mut self, runs: usize) {
+        for i in 0..runs {
+            println!("run: {i} of {runs}");
+            let (shape, color, score) = self.next_shape();
+            if score < self.score {
+                shape.draw(&mut self.canvas, color);
+                self.shapes.push((shape, color));
+            }
+        }
     }
 }

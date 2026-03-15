@@ -36,24 +36,13 @@ fn display_screen(disp_img: &RgbImage) -> Result<()> {
 
 #[show_image::main]
 fn main() -> Result<()> {
-    let width = 800;
-    let height = 600;
-    let mut img = RgbImage::new(width, height);
-
-    /*
-    // --- print to image
-    for _ in 0..100 {
-        let shape = Shape::new_random(width, height);
-        shape.draw(&mut img);
-    }
-     */
-
-    let painting = Painting::from_image(
+    let mut painting = Painting::from_image(
         "../images/IMG_2638.JPG",
         600,
         300,
         shape::ShapeType::Ellipse,
     )?;
+    painting.paint(1);
     display_screen(&painting.canvas)?;
 
     Ok(())
