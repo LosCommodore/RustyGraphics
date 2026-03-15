@@ -57,10 +57,10 @@ impl Painting {
         let width = self.canvas.width();
         let height = self.canvas.height();
 
-        let shape = Shape::new_random_type(width, height);
+        let shape = Shape::new_random_position(self.shape_type, width, height);
         let color = self.get_avarage_color_from_shape_boundaries(&shape);
 
-        let inital_shape = Shape::random(self.shape_type, width, height);
+        let inital_shape = Shape::new_random_position(self.shape_type, width, height);
         let mut initial_score = self.calculate_score(&inital_shape, color);
 
         let mut best_shape = inital_shape.clone();

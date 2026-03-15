@@ -40,7 +40,7 @@ fn main() -> Result<()> {
         "../images/IMG_2638.JPG",
         600,
         300,
-        shape::ShapeType::Ellipse,
+        shape::ShapeType::Triangle,
     )?;
     painting.paint(1);
     display_screen(&painting.canvas)?;

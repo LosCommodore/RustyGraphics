@@ -20,7 +20,11 @@ pub struct Shape {
 
 #[allow(unused)]
 impl Shape {
-    pub fn random(shape_type: ShapeType, screen_width: u32, screen_height: u32) -> Self {
+    pub fn new_random_position(
+        shape_type: ShapeType,
+        screen_width: u32,
+        screen_height: u32,
+    ) -> Self {
         let num_points = match shape_type {
             ShapeType::Line => 2,
             ShapeType::Ellipse => 2,
@@ -44,7 +48,7 @@ impl Shape {
         ];
 
         let shape_type = choices.choose(&mut rng).unwrap();
-        Shape::random(*shape_type, screen_width, screen_height)
+        Shape::new_random_position(*shape_type, screen_width, screen_height)
     }
 
     pub fn draw(&self, canvas: &mut RgbImage, color: Rgb<u8>) {
