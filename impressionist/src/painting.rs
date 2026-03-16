@@ -11,6 +11,14 @@ pub struct Painting {
     pub original: RgbImage,
     pub canvas: RgbImage,
     score: u64,
+    pub shape_optimizer: fn(
+        u32,
+        u32,
+        Rgb<u8>,
+        &Shape,
+        u64,
+        &dyn Fn(&Shape, Rgb<u8>) -> u64,
+    ) -> Option<(Shape, Rgb<u8>, u64)>,
 }
 
 impl Painting {
@@ -32,13 +40,16 @@ impl Painting {
             RgbImage::from_pixel(original.width(), original.height(), pixel);
         let score = img_helper::calculate_difference(&original, &canvas);
 
-        Ok(Self {
+        let me = Painting {
             original,
             shapes,
             canvas,
             score,
             shape_type,
-        })
+            shape_optimizer: optimize_shape,
+        };
+
+        Ok(me)
     }
 
     fn get_avarage_color_from_shape_boundaries(&self, shape: &Shape) -> Rgb<u8> {
@@ -64,13 +75,15 @@ impl Painting {
             return false;
         }
 
-        let Some((shape, color, score)) = optimize_shape(
+        let fitness_fn = |s: &Shape, c: Rgb<u8>| self.calculate_score(s, c);
+
+        let Some((shape, color, score)) = (self.shape_optimizer)(
             width,
             height,
             color,
             &initial_shape,
             initial_score,
-            |shape, color| self.calculate_score(shape, color),
+            &fitness_fn,
         ) else {
             return false;
         };

@@ -117,7 +117,7 @@ fn main() -> Result<()> {
         format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}_impression.jpg"),
         200,
         300,
-        ShapeType::Quadrinial,
+        ShapeType::Ellipse,
         300000,
         Some(10),
     )

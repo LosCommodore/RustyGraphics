@@ -2,17 +2,14 @@ use crate::shape::Shape;
 use image::Rgb;
 use itertools::enumerate;
 
-pub fn optimize_shape<F>(
+pub fn optimize_shape(
     width: u32,
     height: u32,
     color: Rgb<u8>,
     initial_shape: &Shape,
     initial_score: u64,
-    fitness_function: F,
-) -> Option<(Shape, Rgb<u8>, u64)>
-where
-    F: Fn(&Shape, Rgb<u8>) -> u64,
-{
+    fitness_function: &dyn Fn(&Shape, Rgb<u8>) -> u64,
+) -> Option<(Shape, Rgb<u8>, u64)> {
     let mut best_shape = initial_shape.clone();
     let mut best_score = initial_score;
 
