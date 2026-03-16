@@ -1,10 +1,10 @@
 use crate::img_helper;
+use crate::optimizer::optimize_shape;
 use crate::shape::{Shape, ShapeType};
 use anyhow::Result;
 use image::{GenericImageView, ImageBuffer, ImageReader, Rgb, RgbImage};
-use itertools::enumerate;
-
 use std::path::Path;
+
 pub struct Painting {
     shapes: Vec<(Shape, Rgb<u8>)>,
     shape_type: ShapeType,
@@ -53,55 +53,31 @@ impl Painting {
         img_helper::calculate_difference(&self.original, &temp_image)
     }
 
-    pub fn next_shape(&mut self) -> bool {
+    pub fn execute_step(&mut self) -> bool {
         let width = self.canvas.width();
         let height = self.canvas.height();
 
-        let inital_shape = Shape::new_random_position(self.shape_type, width, height);
-        let color = self.get_avarage_color_from_shape_boundaries(&inital_shape);
-        let initial_score = self.calculate_score(&inital_shape, color);
+        let initial_shape = Shape::new_random_position(self.shape_type, width, height);
+        let color = self.get_avarage_color_from_shape_boundaries(&initial_shape);
+        let initial_score = self.calculate_score(&initial_shape, color);
         if initial_score > self.score {
             return false;
         }
 
-        let mut best_shape = inital_shape.clone();
-        let mut best_score = initial_score;
+        let Some((shape, color, score)) = optimize_shape(
+            width,
+            height,
+            color,
+            &initial_shape,
+            initial_score,
+            |shape, color| self.calculate_score(shape, color),
+        ) else {
+            return false;
+        };
 
-        for (i_point, point) in enumerate(&inital_shape.points) {
-            let directions_cross = [
-                (0..point.x as i32, 0..1),
-                ((point.x + 1)..width as i32, 0..1),
-                (0..1, 0..point.y as i32),
-                ((point.y + 1)..height as i32, 0..1),
-            ];
-
-            for (iter_x, iter_y) in &directions_cross {
-                for x in iter_x.clone() {
-                    for y in iter_y.clone() {
-                        let mut new_points = best_shape.points.clone();
-                        new_points[i_point].x = x;
-                        new_points[i_point].y = y;
-
-                        let shape = Shape {
-                            shape_type: self.shape_type,
-                            points: new_points,
-                        };
-                        let score = self.calculate_score(&shape, color);
-                        if score > initial_score {
-                            break;
-                        }
-                        if score < initial_score {
-                            best_shape = shape;
-                            best_score = score;
-                        }
-                    }
-                }
-            }
-        }
-
-        best_shape.draw(&mut self.canvas, color);
-        self.score = best_score;
-        self.shapes.push((best_shape, color));
+        shape.draw(&mut self.canvas, color);
+        self.score = score;
+        self.shapes.push((shape, color));
         true
     }
 
@@ -109,7 +85,7 @@ impl Painting {
     pub fn paint(&mut self, runs: usize) {
         for i in 0..runs {
             println!("run: {i} of {runs}");
-            match self.next_shape() {
+            match self.execute_step() {
                 true => {
                     println!(" -> sucess, new shaped added");
                 }

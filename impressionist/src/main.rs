@@ -1,4 +1,5 @@
 mod img_helper;
+mod optimizer;
 mod painting;
 mod shape;
 
@@ -53,7 +54,7 @@ fn run(
     let mut anim_counter = 1;
     for i in 1..=max_iter {
         println!("Iteration {i} of {max_iter}");
-        painting.next_shape();
+        painting.execute_step();
         if let Some(anim_step) = animate {
             if anim_counter >= anim_step {
                 display_screen(&window, &painting.canvas)?;
@@ -72,6 +73,7 @@ fn run(
 
 #[show_image::main]
 fn main() -> Result<()> {
+    /*
     run(
         "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape.jpeg",
         "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/landscape_thumpnail.jpeg",
@@ -80,6 +82,43 @@ fn main() -> Result<()> {
         300,
         ShapeType::Ellipse,
         100000,
+        Some(10),
+    )
+    */
+    /*
+    run(
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/face_painting.jpg",
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/face_painting_th.jpg",
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/face_painting_impression.jpg",
+        400,
+        600,
+        ShapeType::Quadrinial,
+        80000,
+        Some(10),
+    )
+    */
+    /*
+    run(
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/IMG_2627.JPG",
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/IMG_2627.JPG_th.jpg",
+        "/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/IMG_2627.JPG_impression.jpg",
+        200,
+        300,
+        ShapeType::Triangle,
+        50000,
+        Some(10),
+    )
+    */
+    let image = "IMG-20251120-WA0001";
+    let ending = ".jpg";
+    run(
+        format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}{ending}"),
+        format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}_th.jpg"),
+        format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}_impression.jpg"),
+        200,
+        300,
+        ShapeType::Quadrinial,
+        300000,
         Some(10),
     )
 }
