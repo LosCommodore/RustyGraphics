@@ -120,7 +120,7 @@ fn main() -> Result<()> {
         200,
         300,
         ShapeType::Ellipse,
-        300000,
+        100000,
         Some(10),
         optimizer::cross_optimizer,
     )

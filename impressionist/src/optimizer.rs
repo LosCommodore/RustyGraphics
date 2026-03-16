@@ -9,10 +9,10 @@ fn get_cross_directions_for_point(
     width: u32,
     height: u32,
 ) -> [Box<dyn Iterator<Item = (i32, i32)>>; 4] {
-    let left = izip!((0..point.x as i32).rev(), repeat(point.y));
-    let right = izip!((point.x + 1)..width as i32, repeat(point.y));
-    let up = izip!(repeat(point.x), (0..point.y as i32).rev());
-    let down = izip!(repeat(point.x), (point.y + 1)..height as i32);
+    let left = izip!((0..point.x as i32).rev().step_by(2), repeat(point.y));
+    let right = izip!(((point.x + 1)..width as i32).step_by(2), repeat(point.y));
+    let up = izip!(repeat(point.x), (0..point.y as i32).rev().step_by(2));
+    let down = izip!(repeat(point.x), ((point.y + 1)..height as i32).step_by(2));
 
     let directions: [Box<dyn Iterator<Item = (i32, i32)>>; 4] = [
         Box::new(left),
