@@ -122,6 +122,6 @@ fn main() -> Result<()> {
         ShapeType::Ellipse,
         300000,
         Some(10),
-        optimizer::optimize_shape,
+        optimizer::cross_optimizer,
     )
 }
