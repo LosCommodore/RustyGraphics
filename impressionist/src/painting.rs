@@ -1,9 +1,17 @@
 use crate::img_helper;
-use crate::optimizer::optimize_shape;
 use crate::shape::{Shape, ShapeType};
 use anyhow::Result;
 use image::{GenericImageView, ImageBuffer, ImageReader, Rgb, RgbImage};
 use std::path::Path;
+
+pub type OptimizerFun = fn(
+    u32,                             // screen: width
+    u32,                             // screen: height
+    Rgb<u8>,                         // color of initital shape
+    &Shape,                          // inital shape
+    u64,                             // inital score
+    &dyn Fn(&Shape, Rgb<u8>) -> u64, // fitness function
+) -> Option<(Shape, Rgb<u8>, u64)>;
 
 pub struct Painting {
     shapes: Vec<(Shape, Rgb<u8>)>,
@@ -11,14 +19,7 @@ pub struct Painting {
     pub original: RgbImage,
     pub canvas: RgbImage,
     score: u64,
-    pub shape_optimizer: fn(
-        u32,
-        u32,
-        Rgb<u8>,
-        &Shape,
-        u64,
-        &dyn Fn(&Shape, Rgb<u8>) -> u64,
-    ) -> Option<(Shape, Rgb<u8>, u64)>,
+    pub shape_optimizer: OptimizerFun,
 }
 
 impl Painting {
@@ -27,6 +28,7 @@ impl Painting {
         width: u32,
         height: u32,
         shape_type: ShapeType,
+        shape_optimizer: OptimizerFun,
     ) -> Result<Self> {
         let file = file.as_ref();
         let img = ImageReader::open(file)?.decode()?;
@@ -46,7 +48,7 @@ impl Painting {
             canvas,
             score,
             shape_type,
-            shape_optimizer: optimize_shape,
+            shape_optimizer,
         };
 
         Ok(me)

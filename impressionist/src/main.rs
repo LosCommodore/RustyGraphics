@@ -6,6 +6,7 @@ mod shape;
 use crate::shape::ShapeType;
 use anyhow::{Ok, Result};
 use image::RgbImage;
+use painting::OptimizerFun;
 use painting::Painting;
 use show_image::{ImageInfo, ImageView, WindowProxy, create_window, event};
 use std::path::Path;
@@ -42,8 +43,9 @@ fn run(
     shape_type: ShapeType,
     max_iter: usize,
     animate: Option<usize>,
+    shape_optimizer: OptimizerFun,
 ) -> Result<()> {
-    let mut painting = Painting::from_image(file, width, height, shape_type)?;
+    let mut painting = Painting::from_image(file, width, height, shape_type, shape_optimizer)?;
     painting.original.save(thumpnail_file)?;
 
     let window = create_window("image", Default::default())?;
@@ -120,5 +122,6 @@ fn main() -> Result<()> {
         ShapeType::Ellipse,
         300000,
         Some(10),
+        optimizer::optimize_shape,
     )
 }
