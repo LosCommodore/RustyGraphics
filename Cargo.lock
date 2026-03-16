@@ -1089,6 +1089,7 @@ dependencies = [
  "imageproc",
  "itertools",
  "rand 0.10.0",
+ "rayon",
  "show-image",
 ]
 

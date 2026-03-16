@@ -5,12 +5,12 @@ use image::{GenericImageView, ImageBuffer, ImageReader, Rgb, RgbImage};
 use std::path::Path;
 
 pub type OptimizerFun = fn(
-    u32,                             // screen: width
-    u32,                             // screen: height
-    Rgb<u8>,                         // color of initital shape
-    &Shape,                          // inital shape
-    u64,                             // inital score
-    &dyn Fn(&Shape, Rgb<u8>) -> u64, // fitness function
+    u32,                                      // screen: width
+    u32,                                      // screen: height
+    Rgb<u8>,                                  // color of initital shape
+    &Shape,                                   // inital shape
+    u64,                                      // inital score
+    &(dyn Fn(&Shape, Rgb<u8>) -> u64 + Sync), // fitness function
 ) -> Option<(Shape, Rgb<u8>, u64)>;
 
 pub struct Painting {
