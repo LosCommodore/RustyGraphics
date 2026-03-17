@@ -10,8 +10,8 @@ pub fn no_optimizer<'a>(
     initial_shape: &Shape,
     initial_score: u64,
     fitness_function: &FitnessFn<'a>,
-) -> Option<(Shape, u64)> {
-    Some((initial_shape.clone(), initial_score))
+) -> (Shape, u64) {
+    (initial_shape.clone(), initial_score)
 }
 
 // Dieser "Check" stellt sicher, dass die Signatur exakt passt:

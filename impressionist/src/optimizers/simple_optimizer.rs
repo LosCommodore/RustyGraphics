@@ -67,7 +67,7 @@ pub fn cross_optimizer<'a>(
     initial_shape: &Shape,
     initial_score: u64,
     fitness_function: &FitnessFn<'a>,
-) -> Option<(Shape, u64)> {
+) -> (Shape, u64) {
     let mut best_shape = initial_shape.clone();
     let mut best_score = initial_score;
 
@@ -92,7 +92,7 @@ pub fn cross_optimizer<'a>(
             best_score = score;
         }
     }
-    Some((best_shape, best_score))
+    (best_shape, best_score)
 }
 
 // Dieser "Check" stellt sicher, dass die Signatur exakt passt:

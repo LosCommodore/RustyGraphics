@@ -1,8 +1,19 @@
 mod no_optimizer;
 mod simple_optimizer;
+use crate::painting::OptimizerFn;
 
 #[allow(unused)]
-pub use no_optimizer::no_optimizer;
+#[derive(Debug, Clone, Copy)]
+pub enum OptimizerType {
+    None,
+    Cross,
+}
 
-#[allow(unused)]
-pub use simple_optimizer::cross_optimizer;
+impl OptimizerType {
+    pub fn get_fn(&self) -> OptimizerFn {
+        match self {
+            OptimizerType::None => no_optimizer::no_optimizer,
+            OptimizerType::Cross => simple_optimizer::cross_optimizer,
+        }
+    }
+}

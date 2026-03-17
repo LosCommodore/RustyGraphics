@@ -14,7 +14,7 @@ pub type OptimizerFn = for<'a> fn(
     &Shape,        // inital shape
     u64,           // inital score
     &'a FitnessFn, // fitness function
-) -> Option<(Shape, u64)>;
+) -> (Shape, u64);
 
 pub struct Painting {
     shapes: Vec<Shape>,
@@ -73,26 +73,29 @@ impl Painting {
         let width = self.canvas.width();
         let height = self.canvas.height();
 
+        // -- Create a random initial shape
         let mut initial_shape =
             Shape::new_random_position(self.shape_type, width, height, Rgb([0, 0, 0]));
         initial_shape.color = self.get_avarage_color_from_shape_boundaries(&initial_shape);
 
+        // -- Return if shape makes picture worse
         let initial_score = self.calculate_score(&initial_shape);
         if initial_score > self.score {
             return false;
         }
 
+        // -- Optimize shape
         let fitness_fn = |s: &Shape| self.calculate_score(s);
+        let (shape, score) =
+            (self.shape_optimizer)(width, height, &initial_shape, initial_score, &fitness_fn);
 
-        let Some((shape, score)) =
-            (self.shape_optimizer)(width, height, &initial_shape, initial_score, &fitness_fn)
-        else {
-            return false;
-        };
-
+        // -- Draw
         shape.draw(&mut self.canvas);
+
+        // -- Remember shape and score
         self.score = score;
         self.shapes.push(shape);
+
         true
     }
 

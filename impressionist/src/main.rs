@@ -113,6 +113,7 @@ fn main() -> Result<()> {
     */
     let image = "IMG-20251120-WA0001";
     let ending = ".jpg";
+
     run(
         format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}{ending}"),
         format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}_th.jpg"),
@@ -122,6 +123,6 @@ fn main() -> Result<()> {
         ShapeType::Line,
         100000,
         Some(10),
-        optimizers::cross_optimizer,
+        (optimizers::OptimizerType::Cross).get_fn(),
     )
 }
