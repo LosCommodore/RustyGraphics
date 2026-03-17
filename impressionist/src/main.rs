@@ -6,7 +6,7 @@ mod shape;
 use crate::shape::ShapeType;
 use anyhow::{Ok, Result};
 use image::RgbImage;
-use painting::OptimizerFun;
+use painting::OptimizerFn;
 use painting::Painting;
 use show_image::{ImageInfo, ImageView, WindowProxy, create_window, event};
 use std::path::Path;
@@ -43,7 +43,7 @@ fn run(
     shape_type: ShapeType,
     max_iter: usize,
     animate: Option<usize>,
-    shape_optimizer: OptimizerFun,
+    shape_optimizer: OptimizerFn,
 ) -> Result<()> {
     let mut painting = Painting::from_image(file, width, height, shape_type, shape_optimizer)?;
     painting.original.save(thumpnail_file)?;
@@ -119,7 +119,7 @@ fn main() -> Result<()> {
         format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}_impression.jpg"),
         200,
         300,
-        ShapeType::Ellipse,
+        ShapeType::Line,
         100000,
         Some(10),
         optimizer::cross_optimizer,

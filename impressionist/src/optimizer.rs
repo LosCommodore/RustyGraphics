@@ -1,5 +1,7 @@
-use crate::shape::Shape;
-use image::Rgb;
+use crate::{
+    painting::{FitnessFn, OptimizerFn},
+    shape::Shape,
+};
 use imageproc::point::Point;
 use itertools::{enumerate, izip};
 use rayon::prelude::*;
@@ -26,9 +28,8 @@ pub fn walk_in_direction<I>(
     i_point: usize,
     direction: I,
     initial_shape: &Shape,
-    color: Rgb<u8>,
     initial_score: u64,
-    fitness_function: &(dyn Fn(&Shape, Rgb<u8>) -> u64 + Sync),
+    fitness_function: &FitnessFn,
 ) -> (Shape, u64)
 where
     I: IntoIterator<Item = (i32, i32)>,
@@ -37,32 +38,36 @@ where
     let mut best_score = initial_score;
     let mut best_shape = initial_shape.clone();
 
+    let mut count_steps: i32 = 0;
+    println!("  Initial score {initial_score}");
+
     for (x, y) in direction {
+        count_steps += 1;
         points[i_point].x = x;
         points[i_point].y = y;
 
         let shape = Shape {
-            shape_type: initial_shape.shape_type,
             points: points.clone(),
+            ..*initial_shape
         };
-        let score = fitness_function(&shape, color);
+        let score = fitness_function(&shape);
         if score > best_score {
             break;
         }
         best_score = score;
         best_shape = shape;
     }
+    println!("Step count: {count_steps} / score: {best_score}");
     (best_shape, best_score)
 }
 
-pub fn cross_optimizer(
+pub fn cross_optimizer<'a>(
     width: u32,
     height: u32,
-    color: Rgb<u8>,
     initial_shape: &Shape,
     initial_score: u64,
-    fitness_function: &(dyn Fn(&Shape, Rgb<u8>) -> u64 + Sync),
-) -> Option<(Shape, Rgb<u8>, u64)> {
+    fitness_function: &FitnessFn<'a>,
+) -> Option<(Shape, u64)> {
     let mut best_shape = initial_shape.clone();
     let mut best_score = initial_score;
 
@@ -76,7 +81,6 @@ pub fn cross_optimizer(
                     i_point,
                     direction,
                     initial_shape,
-                    color,
                     initial_score,
                     fitness_function,
                 )
@@ -88,5 +92,8 @@ pub fn cross_optimizer(
             best_score = score;
         }
     }
-    Some((best_shape, color, best_score))
+    Some((best_shape, best_score))
 }
+
+// Dieser "Check" stellt sicher, dass die Signatur exakt passt:
+const _: OptimizerFn = cross_optimizer;

@@ -4,22 +4,25 @@ use anyhow::Result;
 use image::{GenericImageView, ImageBuffer, ImageReader, Rgb, RgbImage};
 use std::path::Path;
 
-pub type OptimizerFun = fn(
-    u32,                                      // screen: width
-    u32,                                      // screen: height
-    Rgb<u8>,                                  // color of initital shape
-    &Shape,                                   // inital shape
-    u64,                                      // inital score
-    &(dyn Fn(&Shape, Rgb<u8>) -> u64 + Sync), // fitness function
-) -> Option<(Shape, Rgb<u8>, u64)>;
+/// Calculate the fitness value for a given shape. Lower is better.s
+pub type FitnessFn<'a> = dyn Fn(&Shape) -> u64 + Sync + 'a;
+
+/// Optimizer for optimizing a provied Shape based on the FitnessFunction.
+pub type OptimizerFn = for<'a> fn(
+    u32,           // screen: width
+    u32,           // screen: height
+    &Shape,        // inital shape
+    u64,           // inital score
+    &'a FitnessFn, // fitness function
+) -> Option<(Shape, u64)>;
 
 pub struct Painting {
-    shapes: Vec<(Shape, Rgb<u8>)>,
+    shapes: Vec<Shape>,
     shape_type: ShapeType,
     pub original: RgbImage,
     pub canvas: RgbImage,
     score: u64,
-    pub shape_optimizer: OptimizerFun,
+    pub shape_optimizer: OptimizerFn,
 }
 
 impl Painting {
@@ -28,7 +31,7 @@ impl Painting {
         width: u32,
         height: u32,
         shape_type: ShapeType,
-        shape_optimizer: OptimizerFun,
+        shape_optimizer: OptimizerFn,
     ) -> Result<Self> {
         let file = file.as_ref();
         let img = ImageReader::open(file)?.decode()?;
@@ -60,9 +63,9 @@ impl Painting {
         img_helper::get_average_pixel(*sub_image)
     }
 
-    fn calculate_score(&self, shape: &Shape, color: Rgb<u8>) -> u64 {
+    fn calculate_score(&self, shape: &Shape) -> u64 {
         let mut temp_image = self.canvas.clone();
-        shape.draw(&mut temp_image, color);
+        shape.draw(&mut temp_image);
         img_helper::calculate_difference(&self.original, &temp_image)
     }
 
@@ -70,29 +73,26 @@ impl Painting {
         let width = self.canvas.width();
         let height = self.canvas.height();
 
-        let initial_shape = Shape::new_random_position(self.shape_type, width, height);
-        let color = self.get_avarage_color_from_shape_boundaries(&initial_shape);
-        let initial_score = self.calculate_score(&initial_shape, color);
+        let mut initial_shape =
+            Shape::new_random_position(self.shape_type, width, height, Rgb([0, 0, 0]));
+        initial_shape.color = self.get_avarage_color_from_shape_boundaries(&initial_shape);
+
+        let initial_score = self.calculate_score(&initial_shape);
         if initial_score > self.score {
             return false;
         }
 
-        let fitness_fn = |s: &Shape, c: Rgb<u8>| self.calculate_score(s, c);
+        let fitness_fn = |s: &Shape| self.calculate_score(s);
 
-        let Some((shape, color, score)) = (self.shape_optimizer)(
-            width,
-            height,
-            color,
-            &initial_shape,
-            initial_score,
-            &fitness_fn,
-        ) else {
+        let Some((shape, score)) =
+            (self.shape_optimizer)(width, height, &initial_shape, initial_score, &fitness_fn)
+        else {
             return false;
         };
 
-        shape.draw(&mut self.canvas, color);
+        shape.draw(&mut self.canvas);
         self.score = score;
-        self.shapes.push((shape, color));
+        self.shapes.push(shape);
         true
     }
 
