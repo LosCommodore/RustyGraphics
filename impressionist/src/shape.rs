@@ -73,8 +73,13 @@ impl Shape {
                 let end = (self.points[1].x as f32, self.points[1].y as f32);
                 draw_line_segment_mut(canvas, start, end, self.color);
             }
-            ShapeType::Triangle | ShapeType::Quadrinial => {
+            ShapeType::Triangle => {
                 draw_polygon_mut(canvas, &self.points, self.color);
+            }
+            ShapeType::Quadrinial => {
+                let mut sort_points = self.points.clone();
+                sort_points_clockwise(&mut sort_points);
+                draw_polygon_mut(canvas, &sort_points, self.color);
             }
         }
     }
@@ -85,6 +90,20 @@ fn random_point(screen_width: u32, screen_height: u32) -> Point<i32> {
     let x = rng.random_range(0..screen_width) as i32;
     let y = rng.random_range(0..screen_height) as i32;
     Point { x, y }
+}
+
+fn sort_points_clockwise(points: &mut [Point<i32>]) {
+    // 1. Mittelpunkt berechnen
+    let m_x: i32 = points.iter().map(|p| p.x).sum::<i32>() / points.len() as i32;
+    let m_y: i32 = points.iter().map(|p| p.y).sum::<i32>() / points.len() as i32;
+
+    // 2. Nach Polarwinkel sortieren
+    points.sort_by(|a, b| {
+        let angle_a = ((a.y - m_y) as f64).atan2((a.x - m_x) as f64);
+        let angle_b = ((b.y - m_y) as f64).atan2((b.x - m_x) as f64);
+
+        angle_a.partial_cmp(&angle_b).unwrap()
+    });
 }
 
 #[allow(unused)]

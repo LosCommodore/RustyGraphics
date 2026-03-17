@@ -120,8 +120,8 @@ fn main() -> Result<()> {
         format!("/home/clangen/Proj/cs_from_scatch/RustyGraphics/images/{image}_impression.jpg"),
         200,
         300,
-        ShapeType::Line,
-        100000,
+        ShapeType::Quadrinial,
+        500000,
         Some(10),
         (optimizers::OptimizerType::Cross).get_fn(),
     )
