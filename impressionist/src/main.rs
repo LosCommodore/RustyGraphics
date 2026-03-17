@@ -1,5 +1,5 @@
 mod img_helper;
-mod optimizer;
+mod optimizers;
 mod painting;
 mod shape;
 
@@ -122,6 +122,6 @@ fn main() -> Result<()> {
         ShapeType::Line,
         100000,
         Some(10),
-        optimizer::cross_optimizer,
+        optimizers::cross_optimizer,
     )
 }
